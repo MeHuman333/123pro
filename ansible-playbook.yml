@@ -10,7 +10,7 @@
       apt:
         name: docker.io
     - name: Deploy Docker Container
-      command: docker run -itd --name capstone01 -p 8084:8081 laxg66/capstone01:v1
+      command: docker run -itd --name capstone01 -p 8084:8081 mehooman/capstone01:v1
 
     - name: getting node exporter
       shell: |
@@ -21,7 +21,7 @@
 
     - name: Download prometheus.yml from the repo
       get_url:
-        url: https://raw.githubusercontent.com/lax66/star-agile-banking-finance_CAP01/master/prometheus.yml
+        url: https://raw.githubusercontent.com/MeHuman333/star-agile-banking-finance_CAP01/master/prometheus.yml
         dest: /home/ubuntu/prometheus.yml
     
     - name: run prometheus container
