@@ -7,16 +7,14 @@ terraform {
   }
 }
 
-# Configure the AWS Provider
 provider "aws" {
   region = "ap-south-1"
 }
 
-# Define variables for instance_type, SSH keys
 variable "instance_type" {
   description = "Instance type"
   type        = string
-  default     = "t2.micro"  # Default value; change as needed
+  default     = "t2.micro"
 }
 
 variable "ssh_private_key" {
@@ -31,10 +29,32 @@ variable "ssh_public_key" {
   default     = "~/.ssh/id_ed25519.pub"
 }
 
-# Create or use existing key pair
 resource "aws_key_pair" "example" {
   key_name   = "key09"
   public_key = file(var.ssh_public_key)
+  lifecycle {
+    ignore_changes = [key_name]
+  }
+}
+
+resource "aws_security_group" "allow_ssh" {
+  name        = "allow_ssh"
+  description = "Allow SSH inbound traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["your_ip/32"]  # Replace with your public IP
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_instance" "server" {
@@ -46,19 +66,19 @@ resource "aws_instance" "server" {
     Name = "${terraform.workspace}_server"
   }
 
-  # Remote exec provisioner to execute commands on the instance
   provisioner "remote-exec" {
     inline = [
-      "sleep 30",  # Add delay to wait for the instance to be ready
       "cat /etc/os-release",
       "mkdir -p /home/ubuntu/.ssh",
       "echo '${var.ssh_public_key}' >> /home/ubuntu/.ssh/authorized_keys",
       "chmod 600 /home/ubuntu/.ssh/authorized_keys",
       "chown -R ubuntu:ubuntu /home/ubuntu/.ssh"
     ]
+    retries  = 5
+    timeout  = "5m"
+    interval = "30s"
   }
 
-  # Connection configuration for remote-exec
   connection {
     type        = "ssh"
     host        = self.public_ip
@@ -66,12 +86,10 @@ resource "aws_instance" "server" {
     private_key = file(var.ssh_private_key)
   }
 
-  # Local-exec provisioner to create the Ansible inventory file
   provisioner "local-exec" {
     command = "echo '${self.public_ip} ansible_user=ubuntu ansible_private_key_file=${var.ssh_private_key}' > inventory.ini"
   }
 
-  # Local-exec provisioner to run the Ansible playbook
   provisioner "local-exec" {
     command = "ansible-playbook -u ubuntu -i inventory.ini -e 'ansible_python_interpreter=/usr/bin/python3' ansible-playbook.yml"
   }
