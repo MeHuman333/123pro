@@ -15,7 +15,7 @@ pipeline {
         stage('Building  docker image'){
             steps{
                 script{
-                    sh 'docker build -t laxg66/capstone01:v1 .'
+                    sh 'docker build -t mehooman/capstone01:v1 .'
                     sh 'docker images'
                 }
             }
