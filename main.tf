@@ -13,11 +13,11 @@ provider "aws" {
 }
 
 # Define Key Pair
-# resource "aws_key_pair" "example" {
-#  key_name   = "key-pair"
-# public_key = file("~/.ssh/id_ed25519.pub")
-# public_key = file("~/.ssh/id_ed25519.pub")
-#}
+resource "aws_key_pair" "example" {
+key_name   = "key-pair"
+public_key = file("~/.ssh/id_ed25519.pub")
+public_key = file("~/.ssh/id_ed25519.pub")
+}
 
 
 # Define Security Group to Allow SSH
