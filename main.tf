@@ -14,6 +14,9 @@ provider "aws" {
 resource "aws_key_pair" "example" {
   key_name = "key02"
   public_key = file("~/.ssh/id_ed25519.pub")
+lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_instance" "server" {
