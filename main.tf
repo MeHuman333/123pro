@@ -29,7 +29,7 @@ resource "aws_security_group" "allow_ssh" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["54.225.23.141 /32"]  # Replace with Jenkins or local machine IP
+    cidr_blocks = ["54.225.23.141/32"]  # Replace with Jenkins or local machine IP
   }
 
   egress {
