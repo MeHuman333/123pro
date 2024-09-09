@@ -11,10 +11,10 @@ terraform {
 provider "aws" {
   region     = "ap-south-1"
 }
-resource "aws_key_pair" "example" {
-  key_name = "key02"
-  public_key = file("~/.ssh/id_ed25519.pub")
-}
+# resource "aws_key_pair" "example" {
+# key_name = "key02"
+# public_key = file("~/.ssh/id_ed25519.pub")
+# }
 
 resource "aws_instance" "server" {
   ami           = "ami-0522ab6e1ddcc7055"
