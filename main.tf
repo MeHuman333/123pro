@@ -14,11 +14,9 @@ provider "aws" {
 
 # Define Key Pair
 resource "aws_key_pair" "example" {
-key_name   = "key-pair"
-public_key = file("~/.ssh/id_ed25519.pub")
-public_key = file("~/.ssh/id_ed25519.pub")
+  key_name   = "key-pair"
+  public_key = file("~/.ssh/id_ed25519.pub")
 }
-
 
 # Define Security Group to Allow SSH
 resource "aws_security_group" "allow_ssh" {
@@ -44,7 +42,7 @@ resource "aws_security_group" "allow_ssh" {
 resource "aws_instance" "server" {
   ami           = "ami-0522ab6e1ddcc7055"
   instance_type = var.instance_type
-  key_name      = "key-pair"
+  key_name      = aws_key_pair.example.key_name
   security_groups = [aws_security_group.allow_ssh.name]
 
   tags = {
@@ -61,7 +59,6 @@ resource "aws_instance" "server" {
       "chown -R ubuntu:ubuntu /home/ubuntu/.ssh"
     ]
 
-    # Set connection timeout
     connection {
       type        = "ssh"
       host        = self.public_ip
@@ -80,3 +77,4 @@ resource "aws_instance" "server" {
     command = "ansible-playbook -u ubuntu -i inventory.ini -e 'ansible_python_interpreter=/usr/bin/python3' ansible-playbook.yml"
   }
 }
+
