@@ -20,6 +20,21 @@ resource "aws_instance" "server" {
   ami           = "ami-0522ab6e1ddcc7055"
   instance_type = var.instance_type
   key_name = "key-pair"
+resource "aws_security_group" "allow_ssh" {
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["54.225.23.141 /32"]  # Replace with Jenkins or local machine IP
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 
   tags = {
     Name = "${terraform.workspace}_server"
