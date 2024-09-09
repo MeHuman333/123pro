@@ -7,7 +7,7 @@ pipeline {
     stages{
         stage('build project'){
             steps{
-                git 'https://github.com/lax66/star-agile-banking-finance_CAP01.git'
+                git 'https://github.com/MeHuman333/123pro.git'
                 sh 'mvn clean package'
               
             }
@@ -15,16 +15,16 @@ pipeline {
         stage('Building  docker image'){
             steps{
                 script{
-                    sh 'docker build -t mehooman/capstone01:v1 .'
+                    sh 'docker build -t mehooman/project1:v1 .'
                     sh 'docker images'
                 }
             }
         }
         stage('push to docker-hub'){
             steps{
-                withCredentials([usernamePassword(credentialsId: 'Docker-login', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                withCredentials([usernamePassword(credentialsId: 'Docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh 'docker push mehooman/capstone01:v1'
+                    sh 'docker push mehooman/project1:v1'
                 }
             }
         }
