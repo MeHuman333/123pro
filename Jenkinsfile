@@ -59,7 +59,8 @@ pipeline {
                 fi
                 terraform destroy -auto-approve
                 terraform apply -auto-approve
-                '''
+                 
+                 '''
             }
        }
     }
