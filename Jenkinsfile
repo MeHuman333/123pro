@@ -15,7 +15,7 @@ pipeline {
         stage('Building  docker image'){
             steps{
                 script{
-                    sh 'docker build -t mehooman/capstone01:v1 .'
+                    sh 'docker build -t mehooman/capstoneFinance01:v1 .'
                     sh 'docker images'
                 }
             }
@@ -24,7 +24,7 @@ pipeline {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh 'docker push mehooman/capstone01:v1'
+                    sh 'docker push mehooman/capstoneFinance01:v1'
                 }
             }
         }
@@ -55,7 +55,7 @@ pipeline {
                 if terraform state show aws_key_pair.example 2>/dev/null; then
                     echo "Key pair already exists in the prod workspace"
                 else
-                    terraform import aws_key_pair.example key02 || echo "Key pair already imported"
+                    terraform import aws_key_pair.example keyPair || echo "Key pair already imported"
                 fi
                 terraform destroy -auto-approve
                 terraform apply -auto-approve
