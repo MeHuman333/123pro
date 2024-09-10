@@ -14,16 +14,16 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t laxg66/capstone01:v1 .'
+                    sh 'docker build -t mehooman/capstone01:v1 .'
                     sh 'docker images'
                 }
             }
         }
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-creds', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh 'docker push laxg66/capstone01:v1'
+                    sh 'docker push mehooman/capstone01:v1'
                 }
             }
         }
