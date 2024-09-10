@@ -15,7 +15,7 @@ pipeline {
         stage('Building  docker image'){
             steps{
                 script{
-                    sh 'docker build -t mehooman/capstoneFinance01:v1 .'
+                    sh 'docker build -t mehooman/capstonefinance01:v1 .'
                     sh 'docker images'
                 }
             }
@@ -24,7 +24,7 @@ pipeline {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh 'docker push mehooman/capstoneFinance01:v1'
+                    sh 'docker push mehooman/capstonefinance01:v1'
                 }
             }
         }
