@@ -9,47 +9,40 @@ terraform {
 
 # Configure the AWS Provider
 provider "aws" {
-  region = "ap-south-1"
+  region     = "ap-south-1"
 }
-
-# Define Key Pair
 resource "aws_key_pair" "example" {
-  key_name   = "key-pair"
+  key_name = "key02"
   public_key = file("~/.ssh/id_ed25519.pub")
 }
 
-# Define Security Group to Allow SSH
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
-  description = "Allow SSH inbound traffic"
+resource "aws_security_group" "allow_all" {
+  name_prefix = "allow_all"
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["54.91.178.128/32"]  # Replace with Jenkins or local machine IP
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"  # This allows all protocols (TCP, UDP, ICMP)
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = "-1"  # This allows all protocols (TCP, UDP, ICMP)
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
-# Define EC2 Instance
 resource "aws_instance" "server" {
   ami           = "ami-0522ab6e1ddcc7055"
   instance_type = var.instance_type
-  key_name      = aws_key_pair.example.key_name
-  security_groups = [aws_security_group.allow_ssh.name]
+  key_name = "key02"
+  vpc_security_group_ids = [aws_security_group.allow_all.id]
 
   tags = {
     Name = "${terraform.workspace}_server"
   }
-
-  # Provisioner for remote execution
   provisioner "remote-exec" {
     inline = [
       "cat /etc/os-release",
@@ -58,23 +51,17 @@ resource "aws_instance" "server" {
       "chmod 600 /home/ubuntu/.ssh/authorized_keys",
       "chown -R ubuntu:ubuntu /home/ubuntu/.ssh"
     ]
-
-    connection {
+  }
+  connection {
       type        = "ssh"
       host        = self.public_ip
       user        = "ubuntu"
       private_key = file(var.ssh_private_key)
-      timeout     = "10m"  # Increased timeout to allow instance initialization
-    }
-  }
-
-  # Provisioner for local execution
+   }
   provisioner "local-exec" {
     command = "echo '${self.public_ip} ansible_user=ubuntu ansible_private_key_file=~/.ssh/id_ed25519' > inventory.ini"
   }
-
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu -i inventory.ini -e 'ansible_python_interpreter=/usr/bin/python3' ansible-playbook.yml"
+        command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu -i inventory.ini -e 'ansible_python_interpreter=/usr/bin/python3' ansible-playbook.yml"
   }
 }
-
