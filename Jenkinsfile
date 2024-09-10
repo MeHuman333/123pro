@@ -50,11 +50,13 @@ pipeline {
             }
             steps {
                 sh '''
+              
+                # Define the variables
                 #!/bin/bash
 
-# Define the variables
+                # Define the variables
                 KEY_PAIR_NAME="key02"
-                SECURITY_GROUP_ID="0544be77a2a16315f" # Use the provided Security Group ID
+                SECURITY_GROUP_ID="0544be77a2a16315f" # Provided Security Group ID
 
                 # Select or create the Terraform workspace
                 terraform workspace select prod || terraform workspace new prod
@@ -62,26 +64,33 @@ pipeline {
                 # Initialize Terraform
                 terraform init
 
-                # Check if the key pair exists in the state and import if not
-                if terraform state show aws_key_pair.example 2>/dev/null; then
+                # Check if the key pair already exists in the state
+                if terraform state list | grep -q 'aws_key_pair.example'; then
                 echo "Key pair already exists in the prod workspace"
                 else
                 echo "Importing key pair..."
-                terraform import aws_key_pair.example $KEY_PAIR_NAME || echo "Key pair import failed or already exists"    
+                terraform import aws_key_pair.example $KEY_PAIR_NAME || echo "Key pair import failed or already exists"
                 fi
 
-                # Check if the security group exists in the state and import if not
-                if terraform state show aws_security_group.allow_ssh 2>/dev/null; then
+                # Check if the security group already exists in the state
+                if terraform state list | grep -q 'aws_security_group.allow_ssh'; then
                 echo "Security group already exists in the prod workspace"
                 else
                 echo "Importing security group..."
                 terraform import aws_security_group.allow_ssh $SECURITY_GROUP_ID || echo "Security group import failed or already exists"
                 fi
 
-# Destroy existing infrastructure
+                # Destroy existing infrastructure
+                terraform destroy -auto-approve || echo "No changes to destroy"
+
+                # Apply new configuration
+                terraform apply -auto-approve
+
+
+                # Destroy existing infrastructure
                 terraform destroy -auto-approve
 
-# Apply new configuration
+                # Apply new configuration
                 terraform apply -auto-approve
 
                              
