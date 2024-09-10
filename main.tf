@@ -35,7 +35,7 @@ resource "aws_security_group" "allow_all" {
 }
 
 resource "aws_instance" "server" {
-  ami           = "ami-0522ab6e1ddcc7055"
+  ami           = "ami-0c2af51e265bd5e0e"
   instance_type = var.instance_type
   key_name = "keyPair"
   vpc_security_group_ids = [aws_security_group.allow_all.id]
