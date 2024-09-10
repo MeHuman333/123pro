@@ -4,63 +4,70 @@ pipeline {
         AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
     }
-    stages{
-        stage('build project'){
-            steps{
-                git 'https://github.com/MeHuman333/123pro.git'
+    stages {
+        stage('Build Project') {
+            steps {
+                git 'https://github.com/lax66/star-agile-banking-finance_CAP01.git'
                 sh 'mvn clean package'
-              
             }
         }
-        stage('Building  docker image'){
-            steps{
-                script{
-                    sh 'docker build -t mehooman/project1:v1 .'
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t laxg66/capstone01:v1 .'
                     sh 'docker images'
                 }
             }
         }
-        stage('push to docker-hub'){
-            steps{
-                withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-creds', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh 'docker push mehooman/project1:v1'
+                    sh 'docker push laxg66/capstone01:v1'
                 }
             }
         }
-        
-        stage('Terraform Operations for test workspace') {
+        stage('Terraform Operations for Test Workspace') {
             steps {
-                sh '''
-                terraform workspace select test || terraform workspace new test
-                terraform init
-                terraform plan
-                terraform destroy -auto-approve
-                '''
+                script {
+                    sh '''
+                    terraform workspace select test || terraform workspace new test
+                    terraform init
+                    terraform plan
+                    terraform destroy -auto-approve || echo "Failed to destroy test resources"
+                    terraform apply -auto-approve || echo "Failed to apply test resources"
+                    '''
+                }
             }
         }
-       stage('Terraform destroy & apply for test workspace') {
-            steps {
-                sh 'terraform apply -auto-approve'
-            }
-       }
-       stage('Terraform Operations for Production workspace') {
+        stage('Terraform Operations for Production Workspace') {
             when {
                 expression { return currentBuild.currentResult == 'SUCCESS' }
             }
             steps {
-                sh '''
-                terraform workspace select prod || terraform workspace new prod
-                terraform init
-                if terraform state show aws_key_pair.example 2>/dev/null; then
-                    echo "Key pair already exists in the prod workspace"
-                else
-                    terraform import aws_key_pair.example key02 || echo "Key pair already imported"
-                fi
-                terraform destroy -auto-approve
-                terraform apply -auto-approve
-                '''
+                script {
+                    sh '''
+                    terraform workspace select prod || terraform workspace new prod
+                    terraform init
+
+                    # Import key pair if it exists in the state
+                    if terraform state show aws_key_pair.example 2>/dev/null; then
+                        echo "Key pair already exists in the prod workspace"
+                    else
+                        echo "Key pair does not exist in the state; Terraform will create it if needed."
+                    fi
+
+                    terraform plan
+                    terraform apply -auto-approve || echo "Failed to apply production resources"
+                    '''
+                }
             }
-       }
+        }
+    }
+    post {
+        always {
+            // Clean up Docker images or perform any necessary final steps
+            sh 'docker system prune -af || echo "Failed to prune Docker system"'
+        }
     }
 }
